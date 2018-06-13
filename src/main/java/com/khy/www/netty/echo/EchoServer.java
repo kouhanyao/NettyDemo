@@ -54,13 +54,13 @@ public class EchoServer {
             //异步绑定服务器；调用sync()方法阻塞等待直到绑定完成
             ChannelFuture f = b.bind().sync();
             //获取channel的closeFuture，并且阻塞当前线程直到他完成
-            // 等待服务器  channel关闭 。
-            f.channel().closeFuture().sync();
             if (f.isSuccess()) {
                 logger.info("启动Netty Server成功，端口号：" + this.port);
             } else {
                 logger.info("启动Netty Server失败，端口号：" + this.port);
             }
+            // 等待服务器  channel关闭 。
+            f.channel().closeFuture().sync();
         } finally {
             //关闭EventLoopGroup，释放所有资源
             workerGroup.shutdownGracefully().sync();
