@@ -1,30 +1,32 @@
 package com.khy.www.netty.echo;
 
-import com.khy.www.netty.utils.NettyUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.CharsetUtil;
 
 import java.io.UnsupportedEncodingException;
 
 /**
  * 在echo协议下实现的处理器
  */
-public class EchoClientHandler extends ChannelInboundHandlerAdapter {
+//标记该类的实例可以被多个channel共享
+@ChannelHandler.Sharable
+public class EchoClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
+    //连接建立时被调用
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws UnsupportedEncodingException {
-        ctx.writeAndFlush(NettyUtils.getSendByteBuf("客户端-->服务端 你好"));
+        ctx.writeAndFlush(Unpooled.copiedBuffer("Netty rocks!",
+                CharsetUtil.UTF_8));
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        // TODO Auto-generated method stub
-        ByteBuf buf = (ByteBuf) msg;// 获取服务端传来的Msg
-        String recieved = NettyUtils.getMessage(buf);
-        System.out.println("------客户端收到信息------" + recieved);
-        buf.release();
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf) throws Exception {
+        //记录已接受消息
+        System.out.println("client received:" + byteBuf.toString(CharsetUtil.UTF_8));
     }
 
     @Override
@@ -35,6 +37,6 @@ public class EchoClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        ctx.flush();
+
     }
 }
