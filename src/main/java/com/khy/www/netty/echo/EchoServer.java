@@ -26,6 +26,9 @@ public class EchoServer {
 
     public void run() throws Exception {
         //创建并分配一个NioEventLoopGroup 实例以进行事件的处理，如接受新连接以及读/写数据；
+        /*与父Channel 相关联的EventLoopGroup 将分配一个EventLoop负责为传入连接请求创建
+        Channel 。一旦连接被接受，第二个EventLoopGroup 就会给它的Channel
+        分配一个EventLoop。见《netty实战》3.3*/
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -42,6 +45,8 @@ public class EchoServer {
                     // 如果要减少发送次数减少网络交互，就设置为false等累积一定大小后再发送。默认为false。
                     .option(ChannelOption.TCP_NODELAY, true)
                     //心跳保活机制
+                    //当设置为true的时候，TCP会实现监控连接是否有效，当连接处于空闲状态的时候，超过了2个小时，本地的TCP实现会发送一个数据包给远程的 socket，
+                    // 如果远程没有发回响应，TCP会持续尝试11分钟，直到响应为止，如果在12分钟的时候还没响应，TCP尝试关闭socket连接。
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
                     //添加一个EchoServerHandler 到子Channel的ChannelPipeline
                     .childHandler(new ChannelInitializer<SocketChannel>() {
@@ -51,7 +56,10 @@ public class EchoServer {
                         }
                     });
 
-            //异步绑定服务器；调用sync()方法阻塞等待直到绑定完成
+            //绑定端口，同步等待成功
+            //服务端启动辅助类配置完成之后，调用它的bind方法绑定监听端口
+            //随后，调用它的同步阻塞方法sync等待绑定操作完成。
+            //完成之后Netty会返回一个ChannelFuture，它的功能类似于JDK的java.util.concurrent.Future，主要用于异步操作的通知回调。
             ChannelFuture f = b.bind().sync();
             //获取channel的closeFuture，并且阻塞当前线程直到他完成
             if (f.isSuccess()) {
@@ -59,10 +67,13 @@ public class EchoServer {
             } else {
                 logger.info("启动Netty Server失败，端口号：" + this.port);
             }
-            // 等待服务器  channel关闭 。
+            //等待服务端监听端口关闭
+            //使用f.channel().closeFuture().sync()方法进行阻塞,等待服务端链路关闭之后main函数才退出。
             f.channel().closeFuture().sync();
         } finally {
             //关闭EventLoopGroup，释放所有资源
+            //优雅退出，释放线程池资源
+            //调用NIO线程组的shutdownGracefully进行优雅退出，它会释放跟shutdownGracefully相关联的资源。
             workerGroup.shutdownGracefully().sync();
             bossGroup.shutdownGracefully().sync();
         }

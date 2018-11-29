@@ -45,7 +45,8 @@ public class EchoClient {
             } else {
                 System.out.println("------connect server fail------");
             }
-            //阻塞，直到Channel 关闭
+            // 等待客户端链路关闭
+            //当客户端连接关闭之后，客户端主函数退出.
             f.channel().closeFuture().sync();
         } finally {
             //关闭线程池并且释放所有的资源

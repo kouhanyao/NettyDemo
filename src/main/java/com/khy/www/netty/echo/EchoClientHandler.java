@@ -34,9 +34,4 @@ public class EchoClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
         cause.printStackTrace();
         ctx.close();
     }
-
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-
-    }
 }

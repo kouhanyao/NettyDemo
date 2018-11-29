@@ -26,10 +26,10 @@ public class EchoServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws UnsupportedEncodingException {
-        ByteBuf buf = (ByteBuf) msg;// 获取服务端传来的Msg
-        System.out.println("server received:" + buf.toString(CharsetUtil.UTF_8));
+        ByteBuf in = (ByteBuf) msg;// 获取服务端传来的Msg
+        System.out.println("server received:" + in.toString(CharsetUtil.UTF_8));
         //将接收到的消息写给发送者，二部冲刷出站消息
-        ctx.write(buf);
+        ctx.write(in);
     }
 
     @Override
